@@ -1,0 +1,269 @@
+1a) LEX Program to count the number of words, characters, spaces and lines
+%{#include<stdio.h>   
+int wc=0,cc=0,sc=0,lc=0;   
+%}  
+word[^\t\n" "]  
+%%
+{word}+ {wc++; cc+=yyleng;}
+\n  lc++;     
+" " sc++;     
+\t  sc=sc+5;
+%%   
+int main()     {
+     printf("Enter string of words\n");
+    yylex();
+printf("no of words=%d\n",wc);     
+printf("no of characters=%d\n",cc);
+printf("no of spaces=%d\n",sc);      
+printf("no of lines=%d\n",lc);     }
+
+1b)LEX Program to recognise a compound statement
+%{#include<stdio.h>   
+int comp=0;    
+%}    
+%%
+"and"|"but"|"because"|”neither”|”either”|”but”|”then”|"or" {comp=1;}
+.|\n ;    
+%%
+int main() {   printf("Enter the sentence\n");       yylex();      if(comp==1)
+printf("compound sentence\n");    else      printf("simple sentence\n");      }
+
+2.l)LEX Program to count the number of words, characters, spaces and lines from an external file
+%{#include<stdio.h>    
+int cc=0,wc=0,bc=0,lc=0;      
+%}      
+word[^\t\n" "]     
+%%
+{word}+ {wc++;cc+=yyleng;}     
+\n lc++;     
+" " bc++;       
+\t bc+5;    
+%%
+int main(int argc, char *argv[])   {
+   ++argv,--argc;      
+if(argc>0)      
+yyin=fopen(argv[0],"r");
+else          
+yyin=stdin;     
+yylex();
+printf("No of characters=%d\n",cc);        printf("No of spaces=%d\n",bc);
+printf("No of words=%d\n",wc);             printf("No of lines=%d\n",lc);           return 0;     }
+
+3.l)LEX Program to count the number of operators and identifiers
+%{#include<stdio.h>       
+int idn=0,m=0,a=0,s=0,d=0,b=0,op=0,ob=0,cb=0,flag=1;   
+%}
+idn[a-zA-Z0-9]     
+%%
+{idn} {idn++;printf("%s is an identifier\n",yytext);}
+"*" {m++;op++;printf("%s is operator\n",yytext);}
+"/" {d++;op++;printf("%s is an operator\n",yytext);}
+"+" {a++;op++;printf("%s is an operator\n",yytext);}
+"-" {s++;op++;printf("%s is an operator\n",yytext);}
+"(" ob++;
+")" {if(ob>cb)cb++; else flag=0;}
+%%
+int main()     {
+printf("enter an arthemetic expression\n");
+yylex();
+int b=ob+cb;
+if((idn=op+1)&&(b%2==0)&&(ob==cb)&&(flag==1))    {
+printf("valid expression\n");
+printf("no of '+' operators=%d\n",a);
+printf("no of '-' operators=%d\n",s);
+printf("no of '*' operators=%d\n",m);
+printf("no of '/' operators=%d\n",d);
+printf("total no of identifiers=%d\n",idn);
+printf("total no of operators=%d\n",op);
+}
+else
+printf("invalid expression\n");
+}
+
+4.l)LEX Program to count the number of operators and identifiers from an external file
+%{#include<stdio.h>   
+int ids=0;   
+%}    
+%%
+(([0-9]+[a-zA-Z]*)|([_][0-9]*)|([~!@#$^&*-+=][a-zA-Z]+)) ;
+([a-zA-Z]|[_])|(([0-9]|[a-zA-Z]|[_])*) 
+  { ids++; printf("%s\t",yytext); }
+.|\n ;    
+%%      
+int main(int argc,char *argv[])    {        --argc,++argv;       if(argc>=0)
+yyin=fopen(argv[0],"r");       printf("identifiers in the given file are\n");
+yylex();      printf("no of identifiers are %d\n",ids);      return 0;       }
+
+5.l)LEX Program to recognise and remove comments from an external file
+%{#include<stdio.h>   
+int comment=0;      
+%}    
+%%
+"/""/"[a-zA-Z0-9\t" "]*|"/*"[a-zA-Z0-9\t" "\n]*"*/" {comment++ ;fprintf(yyout," ");}
+%%      
+void main()   {
+char infile[250],outfile[250];      printf("ENTER THE INPUT FILE NAME:");
+scanf("%s",infile);     printf("ENTER THE OUTPUT FILE NAME:");
+scanf("%s",outfile);    yyin=fopen(infile,"r");     yyout=fopen(outfile,"w");
+yylex();       printf("NUMBER OF COMMENT LINES=%d\n",comment);      }
+
+Infile.c
+#include<stdio.h> int main()  {  int a,b,c;   printf("Enter the value of a and b");
+scanf("%d%d",&a,&b);   c=a+b;   printf("result=%d\n",c);   }
+
+6.l)LEX and YACC Program to check if the operation is valid or not
+%{    
+#include"y.tab.h"     
+%}    
+%%     
+[A-Za-z]+ {return LET;}
+-?[0-9]+ {return NUM;}
+\n {return 0;}        
+. {return yytext[0];}          
+%%
+
+6.y
+%{   #include<stdio.h>   #include<stdlib.h>   
+%}  
+%token LET NUM     
+%left'+''-'    
+%right'*''/'    
+%%
+S:e    
+ ;      
+e:e'+'e         
+ |e'-'e      
+ |e'*'e      
+ |e'/'e       
+ |LET     
+ |NUM    
+ |'-'LET    
+ |'-'NUM      
+ |'('e')'     
+%%
+int main()  {    printf("enter the simple arthemetic expression:");       yyparse();
+printf("\n valid expression\n");    }    int yyerror()    {       printf("invalid expression\n");      exit(0);
+}  int yywrap()    {      return 1;     }
+
+7.l) LEX and YACC Program to check if the string  is form of aaa(n)bbb(n) or not
+%{     #include"y.tab.h"   
+%}    
+%%
+
+a {return A;}   
+b {return B;}    
+. {return yytext[0];}      
+\n {return 0;}     
+%%
+
+7.y
+%{     include<stdio.h>     #include<stdlib.h>     
+%}   
+%token A B      
+%%
+str:S
+   ;
+S:A S B
+ |
+ ;
+%%   
+int main()     {      printf("ENTER THE STRING:");    yyparse();   printf("VALID STRING\n");
+}    int yyerror()    {      printf("INVALID STRING\n");    exit(0);         }        int yywrap()
+{       return 1;   }
+
+
+
+8a.l LEX and YACC Program to check if the variable is valid or not
+%{     #include"y.tab.h"    
+%}   
+%%     
+[a-zA-Z]+ {return A;}    
+[0-9]+ {return D;}
+. {return yytext[0];}       
+\n {return 0;}        
+%%
+
+8a.y
+%{     #include<stdio.h>         #include<stdlib.h>      
+%}    
+%token A D    
+%%
+str:S      
+   ;       
+S:A X Y   
+ ;       
+X:D X    
+ |D    
+ ;        
+Y:A Y     
+ |A    
+ ;       
+%%
+int main()    {     printf("ENTER A VARIABLE:");    yyparse();     printf("VALID VARIABLE\n");
+}     int yyerror()     {      printf("INVALID VARIABLE\n");  exit(0);    }   int yywrap()  {  return 1; }
+
+9.l LEX and YACC Program to check if the Expression is valid or not
+%{    #include"y.tab.h"   
+extern int yylval;    
+%}  
+%%    
+[0-9]* {yylval=atoi(yytext);return NUM;}  
+[\t\n] ;    
+. {return yytext[0];}    
+%%
+
+9.y
+%{  #include<stdio.h>   #include<stdlib.h>   
+%}   
+%token NUM      
+%left'+"-'      
+%left'*"/'      
+%%
+Stmt:expr {printf("result=%d\n",$1);return 0;}
+    ;
+expr:expr'+'expr {$$=$1+$3;}    
+    |expr'-'expr {$$=$1-$3;}     
+    |expr'*'expr {$$=$1*$3;}
+    |expr'/'expr {if($3==0)  {   printf("divide by zeroerror\n");   exit(0);   }   else {$$=$1/$3;}  }
+    |'('expr')' {$$=$2;}    
+    |NUM {$$=$1;}     
+    ;       
+%%
+int main()    {     printf("enter the expression:\n");     yyparse();    }    int yyerror()     {
+printf("invalid input\n");    exit(0);   }    int yywrap()  {  return 1;  }
+
+10.l  LEX and YACC Program to check if the string  is form of a(times 10)b or not
+%{  #include"y.tab.h"   %}   
+%%
+a return A;   
+b return B;  
+. {return yytext[0];}   
+\n {return 0;}    
+%%
+
+10.y
+%{    #include<stdio.h>     #include<stdlib.h>   %}
+%token A B    
+%%
+S:X B
+ ;
+X:A A A A A A A A A A T
+ ;
+T:T A
+ |
+ ;
+%%
+void main()   {    printf("ENTER THE STRING:");       yyparse();      printf("VALID STRING\n");
+}      int yyerror()   {      printf("INVALID STRING\n");     exit(0);      }
+int yywrap()     {     return 1;           }
+
+
+
+
+
+
+
+
+
+
+     
